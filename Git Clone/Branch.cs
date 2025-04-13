@@ -6,6 +6,8 @@
         public string BranchTag { get; set; }
         public List<Commit> BranchCommits { get; set; } = new List<Commit>();
 
+        private Head Head { get; set; } = new Head();
+
         public Branch(string branchName, string branchTag)
         {
             BranchName = branchName;
@@ -15,28 +17,35 @@
         public void AddCommit(Commit commit)
         {
             BranchCommits.Add(commit);
+            Head.LatestCommit = commit;
         }
-        public void GetHead()
+        public Commit GetHead()
         {
-            if (BranchCommits.Count == 0)
+            if (Head == null)
             {
-                Console.WriteLine("No commits found.");
-                return;
+                Console.WriteLine("No HEAD found. Commit before being able to get the HEAD.");
+                return null;
             }
-            Commit latestCommit = BranchCommits.Last();
-            Console.WriteLine($"Latest commit: {latestCommit.Message}");
+            Console.WriteLine($"Latest commit returned: {Head.LatestCommit.Message}");
+            return Head.LatestCommit;
         }
     }
-    public class BranchState
-    {
-
-    }
+    public class BranchState{ }
     public class Head : BranchState
     {
-        // Pointer to latest commit
-        public Commit LatestCommit;
+        private Commit _latestCommit;
+        public Commit LatestCommit { 
+            get 
+            { 
+                return _latestCommit; 
+            }
+            set
+            {
+                _latestCommit = value;
+            }
+        }
 
-        public List<FileSnapShot> GetLatestFileSnapShots()
+        public List<FileSnapShot> GetHeadFileSnapShots()
         {
             if (LatestCommit == null)
             {
@@ -45,14 +54,5 @@
             }
             return LatestCommit.FileSnapShots;
         }
-    }
-    public class Staging : BranchState
-    {
-        public List<FileSnapShot> FileSnapShots { get; set; } = new List<FileSnapShot>();
-    }
-    public class WorkingDirectory : BranchState
-    {
-        public string RepositoryDirectory { get; set; } =
-            "C:\\Users\\Séba\\source\\repos\\Git Clone\\Git Clone\\Repos\\TestRepository\\";
     }
 }

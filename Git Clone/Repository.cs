@@ -6,11 +6,12 @@
         public List<Branch> Branches { get; set; } = new List<Branch>();
 
         // WorkingDirectory
-        public string RepositoryDirectory { get; set; } = 
-            "C:\\Users\\Séba\\source\\repos\\Git Clone\\Git Clone\\Repos\\TestRepository\\";
+        public WorkingDirectory WorkingDirectory { get; set; } = new WorkingDirectory();
 
         // Index
         public List<string> StagedFiles { get; set; } = new List<string>();
+
+        public Index Index { get; set; } = new Index();
 
         public Repository(string repositoryName)
         {
@@ -19,7 +20,7 @@
 
         public void ListAllFilesInRepository()
         {
-            string[] files = Directory.GetFiles(RepositoryDirectory, "*.*", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(WorkingDirectory.RepositoryDirectory, "*.*", SearchOption.AllDirectories);
             foreach (string file in files)
             {
                 if (StagedFiles.Contains(file))
@@ -73,7 +74,7 @@
                 return;
             }
 
-            File.Create($"{RepositoryDirectory}{fileName}.txt");
+            File.Create($"{WorkingDirectory}{fileName}.txt");
         }
         public void DeleteFile(string? fileName = null)
         {
@@ -89,7 +90,7 @@
                 return;
             }
 
-            File.Delete($"{RepositoryDirectory}{fileName}.txt");
+            File.Delete($"{WorkingDirectory}{fileName}.txt");
         }
 
         #endregion
@@ -132,7 +133,16 @@
 
         public void GetFullPath(string fileName, out string fullPath)
         {
-            fullPath = Path.Combine(RepositoryDirectory, $"{fileName}.txt");
+            fullPath = Path.Combine(WorkingDirectory.RepositoryDirectory, $"{fileName}.txt");
         }
+    }
+    public class Index : BranchState
+    {
+        public List<FileSnapShot> CurrentFileSnapShots { get; set; } = new List<FileSnapShot>();
+    }
+    public class WorkingDirectory : BranchState
+    {
+        public string RepositoryDirectory { get; set; } =
+            "C:\\Users\\Séba\\source\\repos\\Git Clone\\Git Clone\\Repos\\TestRepository\\";
     }
 }
