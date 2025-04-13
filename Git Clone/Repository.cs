@@ -13,6 +13,9 @@
 
         public Index Index { get; set; } = new Index();
 
+        // Maybe use this repository for a string diff algorithm that runs on O(nD) time complexity
+        // https://github.com/kpdecker/jsdiff.git
+
         public Repository(string repositoryName)
         {
             RepositoryName = repositoryName;
@@ -136,10 +139,18 @@
             fullPath = Path.Combine(WorkingDirectory.RepositoryDirectory, $"{fileName}.txt");
         }
     }
+
+
+    /// <summary>
+    /// Also known as the staging area. Represents the state of the files that are staged for commit.
+    /// </summary>
     public class Index : BranchState
     {
         public List<FileSnapShot> CurrentFileSnapShots { get; set; } = new List<FileSnapShot>();
     }
+    /// <summary>
+    /// Currently only holds the repository directory. Represents the current state of the project.
+    /// </summary>
     public class WorkingDirectory : BranchState
     {
         public string RepositoryDirectory { get; set; } =
