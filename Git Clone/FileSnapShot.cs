@@ -12,50 +12,61 @@
     public interface INode
     {
         string Name { get; set; }
+        public INode? Parent { get; set; }
     }
     public class FileNode : INode
     {
         public string Name { get; set; }
-        public FileNode(string fileName)
-        {
-            Name = fileName;
-        }
+        public INode? Parent { get; set; }
+
+        public FileNode(string folderName) { Name = folderName; }
     }
     public class FolderNode : INode
     {
         public string Name { get; set; }
+        public INode? Parent { get; set; }
         public Dictionary<string, INode> Children { get; set; } = new();
-
-        public FolderNode(string folderName)
-        {
-            Name = folderName;
-        }
+        public FolderNode(string folderName) { Name = folderName; }
     }
 
     public class TreeBuilder
     {
-        public void AddFile(string fileName, object parentNode)
+        public void AddNode(string filepath, INode node, FolderNode parentNode)
         {
-            
+            if (parentNode.Children.ContainsKey(filepath))
+            {
+                Console.WriteLine($"A node with path {filepath} already exists in {parentNode.Name}.");
+                return;
+            }
+            parentNode.Children.Add(filepath, node);
+            node.Parent = parentNode;
         }
-        public void DisplayTree()
+        public void RemoveNode(string filePath, INode node, FolderNode parentNode)
         {
-            
+            if (!parentNode.Children.ContainsKey(filePath))
+            {
+                Console.WriteLine($"The inputted node does not exist in {parentNode.Name}.");
+                return;
+            }
+
+            parentNode.Children.Remove(filePath);
+            node.Parent = null;
         }
     }
     public class TreeTester
     {
         public TreeBuilder TreeBuilder { get; set; } = new();
 
-        public object Root = new object();
-        public object Branch = new object();
+        public FolderNode Root = new("Folder1");
+        public FolderNode Branch = new("Folder2");
+        public FileNode Node = new("File");
         public void Begin()
         {
-            TreeBuilder.AddFile("File1", Root);
-            TreeBuilder.AddFile("File2", Root);
-            TreeBuilder.AddFile("File2", Branch);
+            TreeBuilder.AddNode("File1", Node, ref Root);
+            TreeBuilder.AddNode("File2", Node, ref Root);
+            TreeBuilder.AddNode("File2", Node, ref Branch);
 
-            TreeBuilder.DisplayTree();
+            //TreeBuilder.DisplayTree();
         }
     }
 }
