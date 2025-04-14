@@ -4,10 +4,11 @@
     {
         static void Main(string[] args)
         {
-            //Repository repo = new Repository("Test Repo");
-            //repo.PrintAllFilesInRepository();
-            GitInterface branchTester = new GitInterface();
-            branchTester.Begin();
+            //GitInterface branchTester = new GitInterface();
+            //branchTester.Begin();
+
+            TreeTester treeBuilder = new TreeTester();
+            treeBuilder.Begin();
         }
     }
 }

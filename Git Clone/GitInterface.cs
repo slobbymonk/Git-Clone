@@ -4,6 +4,7 @@
     {
         BranchManager branchManager = new BranchManager();
         Repository repo = new Repository("TestingRepo");
+
         public void Begin()
         {
             branchManager.Initialize();
