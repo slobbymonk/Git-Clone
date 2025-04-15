@@ -187,7 +187,14 @@
                 if (command.Length <= commandIndex)
                     repo.StageFile(null);
                 else
-                    repo.StageFile(command[commandIndex]);
+                {
+                    string fileName = command[commandIndex];
+                    for (int i = commandIndex + 1; i < command.Length; i++)
+                    {
+                        fileName += " " + command[i];
+                    }
+                    repo.StageFile(fileName);
+                }
             }
             else
             {

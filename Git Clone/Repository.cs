@@ -22,16 +22,10 @@ namespace Git_Clone
         {
             RepositoryName = repositoryName;
         }
-        public string RemoveWhitespace(string input)
-        {
-            return new string(input
-                .Where(c => !Char.IsWhiteSpace(c))
-                .ToArray());
-        }
         public void ListAllFilesInRepository()
         {
             string[] files = Directory.GetFiles(WorkingDirectory.RepositoryDirectory, "*.*", SearchOption.AllDirectories);
-            files[0] = RemoveWhitespace(files[0]);
+            
             foreach (string file in files)
             {
                 if (StagedFiles.Contains(file))
@@ -124,7 +118,9 @@ namespace Git_Clone
                 Console.WriteLine($"File {fileName} does not exist inside the repo.");
                 return;
             }
-
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"File {fileName} was staged.");
+            Console.ResetColor();
             StagedFiles.Add(fileName);
         }
         public List<FileSnapShot> GetAllStagedFiles()
