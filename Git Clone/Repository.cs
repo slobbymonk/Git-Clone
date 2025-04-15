@@ -1,4 +1,6 @@
-﻿namespace Git_Clone
+﻿using System.Text.RegularExpressions;
+
+namespace Git_Clone
 {
     public class Repository
     {
@@ -20,10 +22,16 @@
         {
             RepositoryName = repositoryName;
         }
-
+        public string RemoveWhitespace(string input)
+        {
+            return new string(input
+                .Where(c => !Char.IsWhiteSpace(c))
+                .ToArray());
+        }
         public void ListAllFilesInRepository()
         {
             string[] files = Directory.GetFiles(WorkingDirectory.RepositoryDirectory, "*.*", SearchOption.AllDirectories);
+            files[0] = RemoveWhitespace(files[0]);
             foreach (string file in files)
             {
                 if (StagedFiles.Contains(file))
@@ -111,15 +119,13 @@
                 return;
             }
 
-            GetFullPath(fileName, out string fullPath);
-
-            if(!File.Exists(fullPath))
+            if(!File.Exists(fileName))
             {
                 Console.WriteLine($"File {fileName} does not exist inside the repo.");
                 return;
             }
 
-            StagedFiles.Add(fullPath);
+            StagedFiles.Add(fileName);
         }
         public List<FileSnapShot> GetAllStagedFiles()
         {
@@ -142,6 +148,9 @@
 
             foreach (string file in files)
             {
+                if (!StagedFiles.Contains(file))
+                    continue;
+
                 // Calculate the relative path from the repository root
                 string relativePath = Path.GetRelativePath(WorkingDirectory.RepositoryDirectory, file);
                 // Use the OS-specific separator (Path.DirectorySeparatorChar)
@@ -194,7 +203,6 @@
         }
     }
 
-
     /// <summary>
     /// Also known as the staging area. Represents the state of the files that are staged for commit.
     /// </summary>
@@ -207,6 +215,7 @@
     /// </summary>
     public class WorkingDirectory : BranchState
     {
+        // TODO: Make this path something you can set up
         public string RepositoryDirectory { get; set; } =
             "C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\TestRepository\\";
     }

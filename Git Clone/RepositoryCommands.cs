@@ -8,5 +8,6 @@
         public const string Delete = "edit";
         public const string Create = "create";
         public const string StageFile = "stage";
+        public const string Help = "help";
     }
 }

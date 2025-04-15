@@ -2,7 +2,7 @@
 {
     public struct BranchCommands
     {
-        public const string BranchCommandsIdentifier = "branch";
+        public const string Identifier = "branch";
         public const string CreateBranch = "create";
         public const string DeleteBranch = "delete";
         public const string CloneBranch = "clone";
