@@ -5,7 +5,8 @@ namespace Git_Clone
     public class Repository
     {
         public string RepositoryName { get; set; }
-        public List<Branch> Branches { get; set; } = new List<Branch>();
+
+        public BranchManager BranchManager { get; set; } = new BranchManager();
 
         // WorkingDirectory
         public WorkingDirectory WorkingDirectory { get; set; } = new WorkingDirectory();
@@ -13,14 +14,15 @@ namespace Git_Clone
         // Index
         public List<string> StagedFiles { get; set; } = new List<string>();
 
-        public Index Index { get; set; } = new Index();
-
-        // Maybe use this repository for a string diff algorithm that runs on O(nD) time complexity
-        // https://github.com/kpdecker/jsdiff.git
+        public Index Index { get; set; }
 
         public Repository(string repositoryName)
         {
             RepositoryName = repositoryName;
+
+            Index = new Index(this);
+
+            BranchManager.Initialize();
         }
         public void ListAllFilesInRepository()
         {
@@ -197,14 +199,6 @@ namespace Git_Clone
         {
             fullPath = Path.Combine(WorkingDirectory.RepositoryDirectory, $"{fileName}.txt");
         }
-    }
-
-    /// <summary>
-    /// Also known as the staging area. Represents the state of the files that are staged for commit.
-    /// </summary>
-    public class Index : BranchState
-    {
-        public List<FileSnapShot> CurrentFileSnapShots { get; set; } = new List<FileSnapShot>();
     }
     /// <summary>
     /// Currently only holds the repository directory. Represents the current state of the project.

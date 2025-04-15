@@ -2,12 +2,14 @@
 {
     public class GitInterface
     {
-        BranchManager branchManager = new BranchManager();
-        Repository repo = new Repository("TestingRepo");
+        private Repository repo;
+        private BranchManager branchManager;
 
         public void Begin()
         {
-            branchManager.Initialize();
+            repo = new Repository("TestingRepo");
+            branchManager = repo.BranchManager;
+
             RunGit();
         }
 
