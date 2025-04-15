@@ -45,14 +45,14 @@
             }
         }
 
-        public List<FileSnapShot> GetHeadFileSnapShots()
+        public Tree GetHeadFileTree()
         {
             if (LatestCommit == null)
             {
                 Console.WriteLine("No commit found.");
-                return new List<FileSnapShot>();
+                return null;
             }
-            return LatestCommit.FileSnapShots;
+            return LatestCommit.CommitTree;
         }
     }
 }

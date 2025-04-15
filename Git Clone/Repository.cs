@@ -134,7 +134,61 @@
             return fileSnapShots;
         }
 
-        public void GetFullPath(string fileName, out string fullPath)
+        public Tree PrepareCommit()
+        {
+            FolderNode root = new FolderNode("Root");
+
+            string[] files = Directory.GetFiles(WorkingDirectory.RepositoryDirectory, "*.*", SearchOption.AllDirectories);
+
+            foreach (string file in files)
+            {
+                // Calculate the relative path from the repository root
+                string relativePath = Path.GetRelativePath(WorkingDirectory.RepositoryDirectory, file);
+                // Use the OS-specific separator (Path.DirectorySeparatorChar)
+                string[] pathParts = relativePath.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+
+                FolderNode currentFolder = root;
+
+                // Walk through the relative path to build the folder hierarchy
+                for (int i = 0; i < pathParts.Length - 1; i++)
+                {
+                    string folderName = pathParts[i];
+
+                    if (!currentFolder.Children.ContainsKey(folderName))
+                    {
+                        FolderNode newFolder = new FolderNode(folderName);
+                        newFolder.Parent = currentFolder;
+                        currentFolder.Children.Add(folderName, newFolder);
+                        currentFolder = newFolder;
+                    }
+                    else
+                    {
+                        currentFolder = (FolderNode)currentFolder.Children[folderName];
+                    }
+                }
+
+                // The last segment is the file name
+                string fileName = pathParts[^1];
+                // Read file content (or just a hash, etc.)
+                string content = File.ReadAllText(file);
+                FileNode newFileNode = new FileNode(fileName, content);
+                newFileNode.Parent = currentFolder;
+
+                if (!currentFolder.Children.ContainsKey(fileName))
+                {
+                    currentFolder.Children.Add(fileName, newFileNode);
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: {fileName} already exists in {currentFolder.Name}.");
+                }
+            }
+
+            return new Tree(root);
+        }
+
+
+            public void GetFullPath(string fileName, out string fullPath)
         {
             fullPath = Path.Combine(WorkingDirectory.RepositoryDirectory, $"{fileName}.txt");
         }
@@ -154,6 +208,6 @@
     public class WorkingDirectory : BranchState
     {
         public string RepositoryDirectory { get; set; } =
-            "C:\\Users\\Séba\\source\\repos\\Git Clone\\Git Clone\\Repos\\TestRepository\\";
+            "C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\TestRepository\\";
     }
 }

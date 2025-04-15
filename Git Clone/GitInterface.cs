@@ -139,15 +139,20 @@
         {
             if(command.Length <= commandIndex)
             {
+                Tree commitTree = repo.PrepareCommit();
                 branchManager.GetCurrentBranch()
-                    .AddCommit(new Commit("No Message was added.", repo.GetAllStagedFiles()));
+                    .AddCommit(new Commit("No Message was added.", commitTree));
+                branchManager.GetCurrentBranch().GetHead().DisplayTree((FolderNode)commitTree.RootNode);
                 return;
             }
 
             if (command[commandIndex] == CommitCommands.AddMessage)
             {
                 commandIndex++;
-                branchManager.GetCurrentBranch().AddCommit(new Commit(command[commandIndex], repo.GetAllStagedFiles()));
+                Tree commitTree = repo.PrepareCommit();
+                branchManager.GetCurrentBranch().AddCommit(new Commit(command[commandIndex], commitTree));
+
+                branchManager.GetCurrentBranch().GetHead().DisplayTree((FolderNode)commitTree.RootNode);
             }
             else if (command[commandIndex] == CommitCommands.Help)
             {
@@ -169,7 +174,8 @@
                 {
                     Console.WriteLine($"Commit Message: {commit.Message}");
                     Console.WriteLine($"Commit Date: {commit.CommitDate}");
-                    Console.WriteLine($"Commit Information: {commit.FileSnapShots}");
+                    Console.WriteLine($"Commit Information: ");
+                    commit.DisplayTree(commit.CommitTree.RootNode as FolderNode);
                 }
             }
         }
