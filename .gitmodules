@@ -1,0 +1,3 @@
+[submodule "External/Diff"]
+	path = External/Diff
+	url = https://github.com/mathertel/Diff
