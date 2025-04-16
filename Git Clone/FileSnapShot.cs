@@ -8,5 +8,9 @@
         {
             fileSnapshot.Add(fileName, content);
         }
+        public string GetFileName()
+        {
+            return fileSnapshot.Keys.First();
+        }
     }
 }

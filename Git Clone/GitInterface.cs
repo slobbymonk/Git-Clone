@@ -12,6 +12,19 @@
 
             RunGit();
         }
+        public void RunTest()
+        {
+            var git = new GitInterfaceTestable();
+            git.Begin();
+
+            /*git.TestCommand("git branch create test-branch");
+            git.TestCommand("git branch list");
+            git.TestCommand("git branch current");*/
+            git.TestCommand("git repo stage C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\TestRepository\\Subdirectory\\SubSubDirectory\\fur.txt");
+            git.TestCommand("git commit -m \"Initial commit with file1\"");
+            git.TestCommand("git repo edit C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\TestRepository\\Subdirectory\\SubSubDirectory\\fur.txt");
+            git.TestCommand("git repo list");
+        }
 
         public void RunGit()
         {
@@ -67,9 +80,7 @@
                 if (commandIndex >= command.Length)
                 {
                     // Default commit if no further parameter is given.
-                    Tree commitTree = repo.PrepareCommit();
-                    branchManager.GetCurrentBranch().AddCommit(new Commit("No Message was added.", commitTree));
-                    branchManager.GetCurrentBranch().GetHead().DisplayTree((FolderNode)commitTree.RootNode);
+                    DisplayCommandNotFound(command, commandIndex);
                 }
                 else if (command[commandIndex] == "help")
                 {
@@ -169,7 +180,14 @@
                 if (command.Length <= commandIndex)
                     repo.EditFile(null);
                 else
-                    repo.EditFile(command[commandIndex]);
+                {
+                    string fileName = command[commandIndex];
+                    for (int i = commandIndex + 1; i < command.Length; i++)
+                    {
+                        fileName += " " + command[i];
+                    }
+                    repo.EditFile(fileName);
+                }
             }
             else if (command[commandIndex] == RepositoryCommands.Delete)
             {
@@ -181,7 +199,8 @@
             }
             else if (command[commandIndex] == RepositoryCommands.List)
             {
-                repo.ListAllFilesInRepository();
+                repo.Index.TrackChanges();
+                repo.GetAllStagedFiles();
             }
             else if (command[commandIndex] == RepositoryCommands.StageFile)
             {
@@ -206,14 +225,6 @@
 
         void HandleCommitCommands(string[] command, int commandIndex)
         {
-            if (command.Length <= commandIndex)
-            {
-                Tree commitTree = repo.PrepareCommit();
-                branchManager.GetCurrentBranch().AddCommit(new Commit("No Message was added.", commitTree));
-                branchManager.GetCurrentBranch().GetHead().DisplayTree((FolderNode)commitTree.RootNode);
-                return;
-            }
-
             if (command[commandIndex] == CommitCommands.AddMessage)
             {
                 commandIndex++;
@@ -310,7 +321,8 @@
         }
         void DisplayCommandNotFound(string[] command, int commandIndex)
         {
-            if(commandIndex > 1)
+            Console.WriteLine($"Command {command[commandIndex - 1]} not recognized. Type 'git help' for a list of available commands.");
+            /*if(commandIndex > 1)
             {
                 Console.WriteLine($"Command {command[commandIndex]} not recognized as part of " +
                     $"{command[commandIndex -1]}. Type 'git help' for a list of available commands.");
@@ -318,7 +330,7 @@
             else
             {
                 Console.WriteLine($"Command {command[commandIndex-1]} not recognized. Type 'git help' for a list of available commands.");
-            }
+            }*/
         }
     }
 }

@@ -53,13 +53,11 @@ namespace Git_Clone
                 fileName = Console.ReadLine();
             }
 
-            GetFullPath(fileName,out string fullPath);
-
-            if (File.Exists(fullPath))
+            if (File.Exists(fileName))
             {
                 Console.WriteLine("Enter the new content for the file:");
                 string newContent = Console.ReadLine();
-                File.WriteAllText(fullPath, newContent);
+                File.WriteAllText(fileName, newContent);
                 Console.WriteLine($"File {fileName} has been edited.");
             }
             else
@@ -115,7 +113,7 @@ namespace Git_Clone
                 return;
             }
 
-            if(!File.Exists(fileName))
+            if (!File.Exists(fileName))
             {
                 Console.WriteLine($"File {fileName} does not exist inside the repo.");
                 return;
@@ -127,20 +125,29 @@ namespace Git_Clone
         }
         public List<FileSnapShot> GetAllStagedFiles()
         {
-            List<FileSnapShot> fileSnapShots = new List<FileSnapShot>();
-
-            foreach (string file in StagedFiles)
+            List<FileSnapShot> changedFiles = Index.CurrentFileSnapShots;
+            
+            for (int i = 0; i < changedFiles.Count; i++)
             {
-                string content = File.ReadAllText(file);
-                fileSnapShots.Add(new FileSnapShot(file, content));
+                if (StagedFiles.Contains(changedFiles[i].GetFileName()))
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                Console.WriteLine(changedFiles[i].GetFileName());
+                Console.ResetColor();
             }
 
-            return fileSnapShots;
+            return Index.CurrentFileSnapShots;
         }
 
         public Tree PrepareCommit()
-        {
+        {;
             FolderNode root = new FolderNode("Root");
+            Tree commitTree = new Tree(root);
 
             string[] files = Directory.GetFiles(WorkingDirectory.RepositoryDirectory, "*.*", SearchOption.AllDirectories);
 
@@ -189,13 +196,18 @@ namespace Git_Clone
                 {
                     Console.WriteLine($"Warning: {fileName} already exists in {currentFolder.Name}.");
                 }
+
+                Console.WriteLine($"Adding to tree: {relativePath}");
+
+                string absolutePath = Path.Combine(WorkingDirectory.RepositoryDirectory, relativePath);
+                commitTree.AddNode(absolutePath, newFileNode, currentFolder);
             }
 
-            return new Tree(root);
+            return commitTree;
         }
 
 
-            public void GetFullPath(string fileName, out string fullPath)
+        public void GetFullPath(string fileName, out string fullPath)
         {
             fullPath = Path.Combine(WorkingDirectory.RepositoryDirectory, $"{fileName}.txt");
         }

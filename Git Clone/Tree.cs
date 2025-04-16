@@ -1,8 +1,12 @@
-﻿namespace Git_Clone
+﻿using System.Xml.Linq;
+
+namespace Git_Clone
 {
     public class Tree
     {
         public INode RootNode { get; set; }
+        public Dictionary<string, INode> Nodes { get; set; } = new();
+
         public Tree(INode rootNode)
         {
             RootNode = rootNode;
@@ -15,6 +19,7 @@
                 Console.WriteLine($"A node with path {filepath} already exists in {parentNode.Name}.");
                 return;
             }
+            Nodes.Add(filepath, node);
             parentNode.Children.Add(filepath, node);
             node.Parent = parentNode;
         }
@@ -26,8 +31,33 @@
                 return;
             }
 
+            Nodes.Remove(filePath);
             parentNode.Children.Remove(filePath);
             node.Parent = null;
+        }
+        public bool TryGetFileNode(string filePath, out FileNode headFileNode)
+        {
+            if (Nodes.ContainsKey(filePath))
+            {
+                
+                if (Nodes[filePath] is FileNode fileNode)
+                {
+                    headFileNode = fileNode;
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"The node at {filePath} is not a file.");
+                    headFileNode = null;
+                    return false;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"No node found at {filePath}.");
+                headFileNode = null;
+                return false;
+            }
         }
     }
 }

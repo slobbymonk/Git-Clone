@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Git Clone", "Git Clone\Git Clone.csproj", "{914EC699-89EC-4DA8-BE64-3B60FE85741A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Git Clone", "Git Clone\Git Clone.csproj", "{914EC699-89EC-4DA8-BE64-3B60FE85741A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "diff", "External\Diff\diff.csproj", "{3255F38E-3D03-40C2-8613-22A6E5D6609D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{914EC699-89EC-4DA8-BE64-3B60FE85741A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{914EC699-89EC-4DA8-BE64-3B60FE85741A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{914EC699-89EC-4DA8-BE64-3B60FE85741A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3255F38E-3D03-40C2-8613-22A6E5D6609D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3255F38E-3D03-40C2-8613-22A6E5D6609D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3255F38E-3D03-40C2-8613-22A6E5D6609D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3255F38E-3D03-40C2-8613-22A6E5D6609D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

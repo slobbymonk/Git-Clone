@@ -21,7 +21,7 @@
         }
         public Commit GetHead()
         {
-            if (Head == null)
+            if (Head.LatestCommit == null)
             {
                 Console.WriteLine("No HEAD found. Commit before being able to get the HEAD.");
                 return null;
