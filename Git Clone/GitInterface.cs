@@ -146,7 +146,6 @@
         void DisplayCommitHelp()
         {
             Console.WriteLine("Commit Commands Help:");
-            Console.WriteLine($"  {CommitCommands.AddMessage} [message]     - Creates a new commit with the given message.");
             Console.WriteLine($"  {CommitCommands.ListCommits}              - Lists all commits in the current branch.");
             Console.WriteLine($"  {CommitCommands.Help}                     - Displays this help for commit commands.");
         }
@@ -156,8 +155,8 @@
             Console.WriteLine("Repository Commands Help:");
             Console.WriteLine($"  {RepositoryCommands.Create} [filename]    - Creates a new file in the repository.");
             Console.WriteLine($"  {RepositoryCommands.Edit} [filename]      - Edits an existing file in the repository.");
-            Console.WriteLine($"  {RepositoryCommands.Delete} [filename]    - Deletes a file from the repository.");
-            Console.WriteLine($"  {RepositoryCommands.List}                - Lists all files in the repository.");
+            Console.WriteLine($"  {RepositoryCommands.Remove} [filename]    - Deletes a file from the repository.");
+            Console.WriteLine($"  {RepositoryCommands.ListAllFiles}                - Lists all files in the repository.");
             Console.WriteLine($"  {RepositoryCommands.StageFile} [filename] - Stages the specified file for commit.");
             Console.WriteLine($"  {RepositoryCommands.Help}                - Displays this help for repository commands.");
         }
@@ -169,10 +168,8 @@
             if (command[commandIndex] == RepositoryCommands.Create)
             {
                 commandIndex++;
-                if (command.Length <= commandIndex)
-                    repo.CreateFile(null);
-                else
-                    repo.CreateFile(command[commandIndex]);
+
+                repo.CreateFile(command[commandIndex]);
             }
             else if (command[commandIndex] == RepositoryCommands.ListAllFiles)
             {
@@ -181,45 +178,22 @@
             else if (command[commandIndex] == RepositoryCommands.Edit)
             {
                 commandIndex++;
-                if (command.Length <= commandIndex)
-                    repo.EditFile(null);
-                else
-                {
-                    string fileName = command[commandIndex];
-                    for (int i = commandIndex + 1; i < command.Length; i++)
-                    {
-                        fileName += " " + command[i];
-                    }
-                    repo.EditFile(fileName);
-                }
+                repo.EditFile(command[commandIndex]);
             }
-            else if (command[commandIndex] == RepositoryCommands.Delete)
+            else if (command[commandIndex] == RepositoryCommands.Remove)
             {
                 commandIndex++;
-                if (command.Length <= commandIndex)
-                    repo.DeleteFile(null);
-                else
-                    repo.DeleteFile(command[commandIndex]);
+
+                repo.DeleteFile(command[commandIndex]);
             }
-            else if (command[commandIndex] == RepositoryCommands.List)
+            else if (command[commandIndex] == RepositoryCommands.RepoStatus)
             {
-                repo.Index.TrackChanges();
-                repo.GetAllStagedFiles();
+                repo.Index.ListAllChanges();
             }
             else if (command[commandIndex] == RepositoryCommands.StageFile)
             {
                 commandIndex++;
-                if (command.Length <= commandIndex)
-                    repo.StageFile(null);
-                else
-                {
-                    string fileName = command[commandIndex];
-                    for (int i = commandIndex + 1; i < command.Length; i++)
-                    {
-                        fileName += " " + command[i];
-                    }
-                    repo.StageFile(fileName);
-                }
+                repo.StageFile(command[commandIndex]);
             }
             else
             {
@@ -229,14 +203,7 @@
 
         void HandleCommitCommands(string[] command, int commandIndex)
         {
-            if (command[commandIndex] == CommitCommands.AddMessage)
-            {
-                commandIndex++;
-                Tree commitTree = repo.PrepareCommit();
-                branchManager.GetCurrentBranch().AddCommit(new Commit(command[commandIndex], commitTree));
-                branchManager.GetCurrentBranch().GetHead().DisplayTree((FolderNode)commitTree.RootNode);
-            }
-            else if (command[commandIndex] == CommitCommands.ListCommits)
+            if (command[commandIndex] == CommitCommands.ListCommits)
             {
                 Branch currentBranch = branchManager.GetCurrentBranch();
                 if (currentBranch == null)
@@ -254,7 +221,23 @@
             }
             else
             {
-                DisplayCommandNotFound(command, commandIndex);
+                string commitMessage = "";
+
+                for (int i = commandIndex; i < command.Length; i++)
+                {
+                    if (i == commandIndex)
+                    {
+                        commitMessage = command[i];
+                    }
+                    else
+                    {
+                        commitMessage += " " + command[i];
+                    }
+                }
+
+                Tree commitTree = repo.PrepareCommit();
+                branchManager.GetCurrentBranch().AddCommit(new Commit($"'{commitMessage}'", commitTree));
+                branchManager.GetCurrentBranch().GetHead().DisplayTree((FolderNode)commitTree.RootNode);
             }
         }
 

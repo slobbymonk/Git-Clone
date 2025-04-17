@@ -14,13 +14,16 @@ namespace Git_Clone
 
         public void AddNode(string filepath, INode node, FolderNode parentNode)
         {
-            if (parentNode.Children.ContainsKey(filepath))
+            if(!Nodes.ContainsKey(filepath))
             {
-                Console.WriteLine($"A node with path {filepath} already exists in {parentNode.Name}.");
-                return;
+                Console.WriteLine($"A node with path {filepath} already exists in the tree.");
+                Nodes.Add(filepath, node);
             }
-            Nodes.Add(filepath, node);
-            parentNode.Children.Add(filepath, node);
+
+            if (!parentNode.Children.ContainsKey(filepath))
+            {
+                parentNode.Children.Add(filepath, node);
+            }
             node.Parent = parentNode;
         }
         public void RemoveNode(string filePath, INode node, FolderNode parentNode)

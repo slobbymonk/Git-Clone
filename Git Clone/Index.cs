@@ -5,11 +5,11 @@
     using static my.utils.Diff;
 
     /// <summary>
-    /// Also known as the staging area. Represents the state of the files that are staged for commit.
+    /// Also known as the staging area. Represents the state of the changedFiles that are staged for commit.
     /// </summary>
     public class Index : BranchState
     {
-        public List<FileSnapShot> CurrentFileSnapShots { get; set; } = new List<FileSnapShot>();
+        public List<FileSnapShot> ChangedFiles { get; set; } = new List<FileSnapShot>();
 
         public Repository Repository { get; set; }
 
@@ -20,83 +20,81 @@
             Repository = repository;
         }
 
-        public void TrackChanges()
+        public void ListAllChanges()
         {
-            // Get all the files from the working directory.
-            string[] files = Directory.GetFiles(WorkingDirectory.RepositoryDirectory, "*.*", SearchOption.AllDirectories);
+            Dictionary<string, FileChangeStatus> changedFiles = GetAllChangedFiles();
 
-            // Obtain the HEAD commit tree from your repository's current branch.
-            Tree headCommitTree = Repository.BranchManager.GetCurrentBranch().GetHead()?.CommitTree;
-
-            if (headCommitTree == null)
-                return;
-
-            Diff diff = new Diff();
-
-            foreach (string file in files)
+            foreach (var file in changedFiles.Keys)
             {
-                // Read the new content from the working directory file.
-                string newContent = File.ReadAllText(file);
+                FileChangeStatus status = changedFiles[file];
 
-                // Retrieve the corresponding HEAD content.
-                // This assumes you have a mechanism to locate the FileNode in the commit tree.
-                // For example, if your commit tree maintains a map of file paths to FileNodes,
-                // you would do something like:
-                string relativePath = Path.GetRelativePath(WorkingDirectory.RepositoryDirectory, file);
-
-                if (!headCommitTree.TryGetFileNode(file, out FileNode headFileNode))
+                switch (status)
                 {
-                    Console.WriteLine($"File {relativePath} is new (not present in HEAD).");
-                    continue;
+                    case FileChangeStatus.Added:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"File {file} has been added.");
+                        break;
+                    case FileChangeStatus.Modified:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine($"File {file} has been modified.");
+                        break;
+                    case FileChangeStatus.Deleted:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"File {file} has been deleted.");
+                        break;
                 }
-
-                string headContent = headFileNode.Content;  // Assuming FileNode has a 'Content' property.
-
-
-
-                FindChanges(diff, newContent, headContent);
-
-
-                /*
-                // Optionally, store a new FileSnapShot if needed.
-                string fileName = Path.GetFileName(file);
-                FileSnapShot fileSnapShot = new FileSnapShot(fileName, newContent);
-                CurrentFileSnapShots.Add(fileSnapShot);
-
-                Console.WriteLine($"Looking up in tree: {relativePath}");*/
+                Console.ResetColor();
             }
         }
 
-        private static void FindChanges(Diff diff, string newContent, string headContent)
+        public Dictionary<string, FileChangeStatus> GetAllChangedFiles()
         {
-            string[] linesA = headContent.Replace("\r", "").Split('\n');
-            string[] linesB = newContent.Replace("\r", "").Split('\n');
+            Dictionary<string, FileChangeStatus> _fileChanges = new Dictionary<string, FileChangeStatus>();
+            Diff diff = new Diff();
 
-            Item[] lines = diff.DiffText(headContent, newContent);
+            string[] files = WorkingDirectory.GetFilesInLocalPath().ToArray();
+            Commit HEAD = Repository.BranchManager.GetCurrentBranch().GetHead();
 
-            bool hasChange = lines.Length > 0;
-            if(!hasChange)  Console.WriteLine($"Has change: {hasChange}");
+            HashSet<string> _headFiles = new HashSet<string>(HEAD.CommitTree.Nodes.Keys);
 
-            foreach (var line in lines)
+            if (HEAD == null)
             {
-                if (line.deletedA > 0)
+                Console.WriteLine("No HEAD found. Commit before being able to get the HEAD.");
+                return _fileChanges;
+            }
+
+            foreach (var file in files)
+            {
+                bool doesExistsInHead = HEAD.CommitTree.Nodes.ContainsKey(file);
+
+                if (doesExistsInHead)
                 {
-                    Console.WriteLine("Deleted lines:");
-                    for (int i = 0; i < line.deletedA; i++)
+                    string fullPath = WorkingDirectory.GetFullPathFromRepositoryPath(file);
+
+                    FileNode fileNode = (FileNode)HEAD.CommitTree.Nodes[file];
+                    string currentFileContent = File.ReadAllText(fullPath);
+                    var diffResult = diff.DiffText(fileNode.Content, currentFileContent);
+
+                    if (diffResult.Length > 0)
                     {
-                        Console.WriteLine($"- {linesA[line.StartA + i]}");
+                        _fileChanges.Add(file, FileChangeStatus.Modified);
                     }
                 }
-
-                if (line.insertedB > 0)
+                else
                 {
-                    Console.WriteLine("Inserted lines:");
-                    for (int i = 0; i < line.insertedB; i++)
-                    {
-                        Console.WriteLine($"+ {linesB[line.StartB + i]}");
-                    }
+                    _fileChanges.Add(file, FileChangeStatus.Added);
+                }
+                if (_headFiles.Contains(file))
+                {
+                    _headFiles.Remove(file);
                 }
             }
+            foreach (var deletedChange in _headFiles)
+            {
+                _fileChanges.Add(deletedChange, FileChangeStatus.Deleted);
+            }
+
+            return _fileChanges;
         }
     }
 }

@@ -3,7 +3,6 @@
     public struct CommitCommands
     {
         public const string Identifier = "commit";
-        public const string AddMessage = "-m";
         public const string ListCommits = "list";
         public const string Help = "help";
     }
