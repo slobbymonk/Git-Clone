@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using my.utils;
+using System.Text.RegularExpressions;
 
 namespace Git_Clone
 {
@@ -26,8 +27,8 @@ namespace Git_Clone
         }
         public void ListAllFilesInRepository()
         {
-            string[] files = Directory.GetFiles(WorkingDirectory.RepositoryDirectory, "*.*", SearchOption.AllDirectories);
-            
+            List<string> files = WorkingDirectory.GetFilesInLocalPath().ToList();
+
             foreach (string file in files)
             {
                 if (StagedFiles.Contains(file))
@@ -205,6 +206,46 @@ namespace Git_Clone
 
             return commitTree;
         }
+        
+        public Dictionary<string, FileStatus> GetAllFileChanges()
+        {
+            Dictionary<string, FileStatus> _fileChanges = new Dictionary<string, FileStatus>();
+
+            string[] files = WorkingDirectory.GetFilesInLocalPath().ToArray();
+
+            foreach (var file in files)
+            {
+                bool doesExistsInHead = BranchManager.GetCurrentBranch().GetHead().CommitTree.Nodes.ContainsKey(file);
+
+                if (doesExistsInHead)
+                {
+                    if (!File.Exists(file))
+                    {
+                        _fileChanges.Add(file, FileStatus.Deleted);
+                        continue;
+                    }
+
+                    Diff diff = new Diff();
+                    FileNode fileNode = BranchManager.GetCurrentBranch().GetHead().CommitTree.Nodes[file] as FileNode;
+                    var diffResult = diff.DiffText(fileNode.Content, File.ReadAllText(file));
+
+                    if (diffResult.Length > 0)
+                    {
+                        _fileChanges.Add(file, FileStatus.Modified);
+                    }
+                    else
+                    {
+                        _fileChanges.Add(file, FileStatus.Unchanged);
+                    }
+                }
+                else
+                {
+                    _fileChanges.Add(file, FileStatus.Added);
+                }
+            }
+
+            return _fileChanges;
+        }
 
 
         public void GetFullPath(string fileName, out string fullPath)
@@ -220,5 +261,23 @@ namespace Git_Clone
         // TODO: Make this path something you can set up
         public string RepositoryDirectory { get; set; } =
             "C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\TestRepository\\";
+
+        /// <summary>
+        /// Gets all the files in the directory inside of its path relative to the directory root folder.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> GetFilesInLocalPath()
+        {
+            return Directory.EnumerateFiles(RepositoryDirectory, "*.*", SearchOption.AllDirectories)
+                                           .Select(path => Path.GetRelativePath(RepositoryDirectory, path));
+        }
+    }
+
+    public enum FileStatus
+    {
+        Added,
+        Deleted,
+        Modified,
+        Unchanged
     }
 }

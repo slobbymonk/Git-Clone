@@ -174,6 +174,10 @@
                 else
                     repo.CreateFile(command[commandIndex]);
             }
+            else if (command[commandIndex] == RepositoryCommands.ListAllFiles)
+            {
+                repo.ListAllFilesInRepository();
+            }
             else if (command[commandIndex] == RepositoryCommands.Edit)
             {
                 commandIndex++;

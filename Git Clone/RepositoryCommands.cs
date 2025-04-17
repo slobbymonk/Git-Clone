@@ -4,6 +4,7 @@
     {
         public const string Identifier = "repo";
         public const string List = "list";
+        public const string ListAllFiles = "listall";
         public const string Edit = "edit";
         public const string Delete = "edit";
         public const string Create = "create";
