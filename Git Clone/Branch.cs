@@ -19,11 +19,11 @@
             BranchCommits.Add(commit);
             Head.LatestCommit = commit;
         }
-        public Commit GetHead()
+        
+        public Commit? GetHead()
         {
             if (Head.LatestCommit == null)
             {
-                Console.WriteLine("No HEAD found. Commit before being able to get the HEAD.");
                 return null;
             }
             Console.WriteLine($"Latest commit returned: {Head.LatestCommit.Message}");

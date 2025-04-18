@@ -1,8 +1,4 @@
-﻿using my.utils;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-
-namespace Git_Clone
+﻿namespace Git_Clone
 {
     public class Repository
     {
@@ -32,15 +28,44 @@ namespace Git_Clone
 
             foreach (string file in files)
             {
-                if (StagedFiles.Contains(file))
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
                 Console.WriteLine(file);
+            }
+        }
+
+        public void ListAllChanges()
+        {
+            Dictionary<string, FileChangeStatus> changedFiles = Index.GetAllChangedFiles();
+
+            Console.WriteLine("Staged files:");
+            foreach (var file in StagedFiles)
+            {
+                FileChangeStatus status = changedFiles[file];
+
+                switch (status)
+                {
+                    case FileChangeStatus.Added:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        break;
+                    case FileChangeStatus.Modified:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    case FileChangeStatus.Deleted:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                }
+                Console.WriteLine($"File {file} has been {status}.");
+                Console.ResetColor();
+
+                changedFiles.Remove(file);
+            }
+
+            Console.WriteLine("UnStaged files:");
+            foreach (var file in changedFiles.Keys)
+            {
+                FileChangeStatus status = changedFiles[file];
+
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine($"File {file} has been {status}.");
                 Console.ResetColor();
             }
         }
@@ -104,46 +129,87 @@ namespace Git_Clone
 
         #endregion
 
-        public void StageFile(string fileName)
+        public void StageFileWithName(string fileName)
         {
-
             if (!fileName.EndsWith(".txt"))
             {
                 fileName += ".txt";
             }
 
-            string fileInLocalPath = WorkingDirectory.GetLocalPathName(fileName);
-            string fileInDirectory = WorkingDirectory.GetFullPathFromRepositoryPath(fileInLocalPath);
-
-            if (StagedFiles.Contains(fileInLocalPath))
+            if (StagedFiles.Contains(fileName))
             {
-                Console.WriteLine($"File {fileName} is already staged.");
+                Console.WriteLine($"{fileName} was already staged.");
                 return;
             }
+
+            string? fileInLocalPath = WorkingDirectory.GetLocalPathName(fileName);
+
+            if(fileInLocalPath == null)
+            {
+                Console.WriteLine("Local path could not be found, this is StageFileWithName inside of Repository.");
+                return;
+            }
+
+            StageFileInternal(fileName, fileInLocalPath);
+        }
+
+        public void StageFileByLocalPath(string fileInLocalPath)
+        {
+            StageFileInternal(null, fileInLocalPath);
+        }
+
+        private void StageFileInternal(string? fileName, string fileInLocalPath)
+        {
+            if (StagedFiles.Contains(fileInLocalPath))
+                return;
+
+            string fileInDirectory = WorkingDirectory.GetFullPathFromRepositoryPath(fileInLocalPath);
 
             if (!File.Exists(fileInDirectory))
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"File {fileInLocalPath} does not exist inside the repo.");
+                Console.ResetColor();
                 return;
             }
+
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"File {fileName} was staged.");
+            Console.WriteLine($"File {fileName ?? fileInLocalPath} was staged.");
             Console.ResetColor();
+
             StagedFiles.Add(fileInLocalPath);
         }
-        
+
+        public void StageAllChanges()
+        {
+            Dictionary<string, FileChangeStatus> changedFilesInLocalPath = Index.GetAllChangedFiles();
+
+            foreach (var fileInLocalPath in changedFilesInLocalPath.Keys)
+            {
+                StageFileByLocalPath(fileInLocalPath);
+            }
+        }
+
         public Tree PrepareCommit()
         {
             FolderNode root = new FolderNode("Root");
             Tree commitTree = new Tree(root);
 
-            foreach (string file in StagedFiles)
+            Dictionary<string, FileChangeStatus> changedFiles = Index.GetAllChangedFiles();
+
+            Branch currentBranch = BranchManager.GetCurrentBranch();
+            Commit? head = currentBranch.GetHead();
+            Tree? _headTree = head?.CommitTree;
+
+            List<string> allFiles = WorkingDirectory.GetFilesInLocalPath().ToList();
+
+            foreach (string file in allFiles)
             {
                 string[] pathParts = file.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
 
                 FolderNode currentFolder = root;
 
-                // Iterate through all folders (exclude the last part — the file name)
+                // Iterate through all folders (exclude the last part aka the file name)
                 for (int i = 0; i < pathParts.Length - 1; i++)
                 {
                     string folderName = pathParts[i];
@@ -161,21 +227,40 @@ namespace Git_Clone
                     }
                 }
 
-                // The last part is the actual file
-                string fileName = pathParts[^1];
+                FileNode? newFileNode = null;
 
-                string fullPath = WorkingDirectory.GetFullPathFromRepositoryPath(file);
-                string content = File.ReadAllText(fullPath);
-                FileNode newFileNode = new FileNode(fileName, content);
-                newFileNode.Parent = currentFolder;
-
-                if (!currentFolder.Children.ContainsKey(fileName))
+                if (changedFiles.ContainsKey(file)) // Did file change?
                 {
-                    currentFolder.Children.Add(fileName, newFileNode);
+                    if (!StagedFiles.Contains(file) || changedFiles[file] == FileChangeStatus.Deleted) // Ok but did you stage it huh?
+                        continue;
+
+                    // Oh you did, alright then let's make a new node
+                    string fullPath = WorkingDirectory.GetFullPathFromRepositoryPath(file);
+                    string content = File.ReadAllText(fullPath);
+
+                    newFileNode = new FileNode(file, content);
+                    commitTree.AddNode(file, newFileNode, currentFolder);
                 }
                 else
                 {
-                    Console.WriteLine($"Warning: {fileName} already exists in {currentFolder.Name}.");
+                    if(_headTree != null && _headTree.Nodes.TryGetValue(file, out INode? existingNode))
+                    {
+                        commitTree.AddNode(file, existingNode, currentFolder);
+                    }
+                }
+
+                if (newFileNode == null)
+                    continue;
+                
+                newFileNode.Parent = currentFolder;
+
+                if (!currentFolder.Children.ContainsKey(file))
+                {
+                    currentFolder.Children.Add(file, newFileNode);
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: {file} already exists in {currentFolder.Name}.");
                 }
 
                 Console.WriteLine($"Adding to tree: {file}");
@@ -186,8 +271,6 @@ namespace Git_Clone
             StagedFiles.Clear();
             return commitTree;
         }
-
-
 
         public void GetFullPath(string fileName, out string fullPath)
         {

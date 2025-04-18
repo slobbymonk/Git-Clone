@@ -20,33 +20,6 @@
             Repository = repository;
         }
 
-        public void ListAllChanges()
-        {
-            Dictionary<string, FileChangeStatus> changedFiles = GetAllChangedFiles();
-
-            foreach (var file in changedFiles.Keys)
-            {
-                FileChangeStatus status = changedFiles[file];
-
-                switch (status)
-                {
-                    case FileChangeStatus.Added:
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"File {file} has been added.");
-                        break;
-                    case FileChangeStatus.Modified:
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine($"File {file} has been modified.");
-                        break;
-                    case FileChangeStatus.Deleted:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"File {file} has been deleted.");
-                        break;
-                }
-                Console.ResetColor();
-            }
-        }
-
         public Dictionary<string, FileChangeStatus> GetAllChangedFiles()
         {
             Dictionary<string, FileChangeStatus> _fileChanges = new Dictionary<string, FileChangeStatus>();
@@ -55,14 +28,17 @@
             string[] files = WorkingDirectory.GetFilesInLocalPath().ToArray();
             Commit HEAD = Repository.BranchManager.GetCurrentBranch().GetHead();
 
-            HashSet<string> _headFiles = new HashSet<string>(HEAD.CommitTree.Nodes.Keys);
-
             if (HEAD == null)
             {
-                Console.WriteLine("No HEAD found. Commit before being able to get the HEAD.");
+                //Console.WriteLine("No HEAD found. Which means it's a clean start. Returning all files as added.");
+                foreach (string file in files)
+                {
+                    _fileChanges.Add(file, FileChangeStatus.Added);
+                }
                 return _fileChanges;
             }
 
+            HashSet<string> _headFiles = new HashSet<string>(HEAD.CommitTree.Nodes.Keys);
             foreach (var file in files)
             {
                 bool doesExistsInHead = HEAD.CommitTree.Nodes.ContainsKey(file);

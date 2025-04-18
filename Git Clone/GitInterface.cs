@@ -3,12 +3,10 @@
     public class GitInterface
     {
         private Repository repo;
-        private BranchManager branchManager;
 
         public void Begin()
         {
             repo = new Repository("TestingRepo");
-            branchManager = repo.BranchManager;
 
             RunGit();
         }
@@ -17,13 +15,37 @@
             var git = new GitInterfaceTestable();
             git.Begin();
 
-            /*git.TestCommand("git branch create test-branch");
-            git.TestCommand("git branch list");
-            git.TestCommand("git branch current");*/
-            git.TestCommand("git repo stage C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\TestRepository\\Subdirectory\\SubSubDirectory\\fur.txt");
-            git.TestCommand("git commit -m \"Initial commit with file1\"");
-            git.TestCommand("git repo edit C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\TestRepository\\Subdirectory\\SubSubDirectory\\fur.txt");
-            git.TestCommand("git repo list");
+            // Create and modify the repository files
+            Console.WriteLine("Creating files...");
+            git.TestCommand("git repo create file1.txt");
+            git.TestCommand("git repo create file2.txt");
+            git.TestCommand("git repo create file3.txt");
+            git.TestCommand("git repo create file4.txt");
+
+            // Modify file2 (but don't stage it)
+            Console.WriteLine("Editing file2.txt...");
+            git.TestCommand("git repo edit file2.txt");
+
+            // Stage file1
+            Console.WriteLine("Staging file1.txt...");
+            git.TestCommand("git repo stage file1.txt");
+
+            // Delete file4
+            Console.WriteLine("Deleting file4.txt...");
+            git.TestCommand("git repo delete file4.txt");
+
+
+            // Check what files are staged and the commit tree state
+            Console.WriteLine("Checking repository state BEFORE commit...");
+            git.TestCommand("git repo status"); // List all files in the repository after commit
+
+            // Commit changes
+            Console.WriteLine("Committing changes...");
+            git.TestCommand("git commit thiswillbeheadlol");
+
+            // Check what files are staged and the commit tree state
+            Console.WriteLine("Checking repository state AFTER commit...");
+            git.TestCommand("git repo status"); // List all files in the repository after commit
         }
 
         public void RunGit()
@@ -188,12 +210,16 @@
             }
             else if (command[commandIndex] == RepositoryCommands.RepoStatus)
             {
-                repo.Index.ListAllChanges();
+                repo.ListAllChanges();
             }
             else if (command[commandIndex] == RepositoryCommands.StageFile)
             {
                 commandIndex++;
-                repo.StageFile(command[commandIndex]);
+
+                if (command[commandIndex] == RepositoryCommands.StageAllFiles)
+                    repo.StageAllChanges();
+                else
+                    repo.StageFileWithName(command[commandIndex]);
             }
             else
             {
@@ -205,7 +231,7 @@
         {
             if (command[commandIndex] == CommitCommands.ListCommits)
             {
-                Branch currentBranch = branchManager.GetCurrentBranch();
+                Branch currentBranch = repo.BranchManager.GetCurrentBranch();
                 if (currentBranch == null)
                 {
                     Console.WriteLine("No current branch found.");
@@ -216,7 +242,6 @@
                     Console.WriteLine($"Commit Message: {commit.Message}");
                     Console.WriteLine($"Commit Date: {commit.CommitDate}");
                     Console.WriteLine("Commit Information: ");
-                    commit.DisplayTree(commit.CommitTree.RootNode as FolderNode);
                 }
             }
             else
@@ -236,8 +261,7 @@
                 }
 
                 Tree commitTree = repo.PrepareCommit();
-                branchManager.GetCurrentBranch().AddCommit(new Commit($"'{commitMessage}'", commitTree));
-                branchManager.GetCurrentBranch().GetHead().DisplayTree((FolderNode)commitTree.RootNode);
+                repo.BranchManager.GetCurrentBranch().AddCommit(new Commit($"'{commitMessage}'", commitTree));
             }
         }
 
@@ -251,7 +275,7 @@
                     Console.WriteLine($"No branch name provided. Aborting {BranchCommands.CreateBranch}.");
                     return;
                 }
-                branchManager.CreateBranch(command[commandIndex], "0.0.1");
+                repo.BranchManager.CreateBranch(command[commandIndex], "0.0.1");
             }
             else if (command[commandIndex] == BranchCommands.DeleteBranch)
             {
@@ -266,11 +290,11 @@
                     Console.WriteLine("Invalid branch id provided. Aborting deletion.");
                     return;
                 }
-                branchManager.DeleteBranch(idToDelete);
+                repo.BranchManager.DeleteBranch(idToDelete);
             }
             else if (command[commandIndex] == BranchCommands.ListBranches)
             {
-                branchManager.ListAllBranchNames();
+                repo.BranchManager.ListAllBranchNames();
             }
             else if (command[commandIndex] == BranchCommands.CloneBranch)
             {
@@ -285,11 +309,11 @@
                     Console.WriteLine("Invalid branch id provided. Aborting cloning.");
                     return;
                 }
-                branchManager.CloneBranch(branchId);
+                repo.BranchManager.CloneBranch(branchId);
             }
             else if (command[commandIndex] == BranchCommands.CurrentBranch)
             {
-                Console.WriteLine($"You're currently on branch: {branchManager.CurrentBranchId}");
+                Console.WriteLine($"You're currently on branch: {repo.BranchManager.CurrentBranchId}");
             }
             else if (command[commandIndex] == BranchCommands.CheckoutBranch)
             {
@@ -299,7 +323,7 @@
                     Console.WriteLine($"No branch id provided. Aborting {BranchCommands.CheckoutBranch}.");
                     return;
                 }
-                branchManager.CheckoutBranch(int.Parse(command[commandIndex]));
+                repo.BranchManager.CheckoutBranch(int.Parse(command[commandIndex]));
             }
             else
             {

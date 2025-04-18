@@ -9,6 +9,7 @@
         public const string Remove = "remove";
         public const string Create = "create";
         public const string StageFile = "stage";
+        public const string StageAllFiles = "all";
         public const string Help = "help";
     }
 }

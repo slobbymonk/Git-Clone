@@ -70,7 +70,6 @@
                 {
                     Tree commitTree = repo.PrepareCommit();
                     branchManager.GetCurrentBranch().AddCommit(new Commit("No Message was added.", commitTree));
-                    branchManager.GetCurrentBranch().GetHead().DisplayTree((FolderNode)commitTree.RootNode);
                 }
                 else if (command[commandIndex] == "help")
                 {

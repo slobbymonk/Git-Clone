@@ -11,23 +11,5 @@
             Message = commitMessage;
             CommitTree = tree;
         }
-
-        public void DisplayTree(FolderNode folder, string indent = "")
-        {
-            Console.WriteLine($"{indent}{folder.Name}/");
-
-            foreach (var kvp in folder.Children)
-            {
-                if (kvp.Value is FolderNode childFolder)
-                {
-                    DisplayTree(childFolder, indent + "    ");
-                }
-                else if (kvp.Value is FileNode file)
-                {
-                    Console.WriteLine($"{indent}    {file.Name}");
-                }
-            }
-        }
-
     }
 }
