@@ -1,7 +1,12 @@
-﻿using System.Xml.Linq;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+using System.Text.Json.Serialization;
+using System.Xml.Linq;
+using Newtonsoft.Json;
 
 namespace Git_Clone
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class Tree
     {
         public INode RootNode { get; set; }

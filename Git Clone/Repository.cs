@@ -1,9 +1,16 @@
-﻿namespace Git_Clone
+﻿using Newtonsoft.Json;
+
+namespace Git_Clone
 {
+    // TODO: Fix bug where for some reason it thinks things that don't, already exist
+    // TODO: Add checking out of previous commits
+    // TODO: Add saving commits in file
+
+
     public class Repository
     {
         public string RepositoryName { get; set; }
-
+        
         public BranchManager BranchManager { get; set; } = new BranchManager();
 
         // WorkingDirectory
@@ -210,7 +217,9 @@
                 FolderNode currentFolder = root;
 
                 // Iterate through all folders (exclude the last part aka the file name)
-                for (int i = 0; i < pathParts.Length - 1; i++)
+                string currentFolderPath = string.Empty;
+                int loopStartingValue = 0;
+                for (int i = loopStartingValue; i < pathParts.Length - 1; i++)
                 {
                     string folderName = pathParts[i];
 
@@ -225,6 +234,10 @@
                     {
                         currentFolder = (FolderNode)existingNode;
                     }
+                    currentFolderPath += pathParts[i] + Path.DirectorySeparatorChar;
+                    FolderNode parentFolder = (i == loopStartingValue) ? root : 
+                        (FolderNode)commitTree.Nodes[pathParts[i - 1] + Path.DirectorySeparatorChar];
+                    commitTree.AddNode(currentFolderPath, currentFolder, parentFolder);
                 }
 
                 FileNode? newFileNode = null;
@@ -269,6 +282,11 @@
             }
 
             StagedFiles.Clear();
+
+            string json = JsonConvert.SerializeObject(commitTree.RootNode, Formatting.Indented);
+            File.WriteAllText("C:\\Games" + "\\" + "tree.json", json);
+
+
             return commitTree;
         }
 
