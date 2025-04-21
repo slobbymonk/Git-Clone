@@ -28,7 +28,7 @@ namespace Git_Clone
             {
                 return null;
             }
-            Console.WriteLine($"Latest commit returned: {Head.LatestCommit.Message}");
+            //Console.WriteLine($"Latest commit returned: {Head.LatestCommit.Message}");
             return Head.LatestCommit;
         }
     }

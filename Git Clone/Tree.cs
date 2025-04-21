@@ -17,7 +17,7 @@ namespace Git_Clone
         {
             if(!Nodes.ContainsKey(filepath))
             {
-                Console.WriteLine($"A node with path {filepath} already exists in the tree.");
+                //Console.WriteLine($"A node with path {filepath} already exists in the tree.");
                 Nodes.Add(filepath, node);
             }
 
