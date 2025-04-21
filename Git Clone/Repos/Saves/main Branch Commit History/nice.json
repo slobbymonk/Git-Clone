@@ -1,0 +1,217 @@
+{
+  "$type": "Git_Clone.Tree, Git Clone",
+  "RootNode": {
+    "$type": "Git_Clone.FolderNode, Git Clone",
+    "Name": "Root",
+    "Children": {
+      "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[Git_Clone.INode, Git Clone]], System.Private.CoreLib",
+      "file1.txt": {
+        "$type": "Git_Clone.FileNode, Git Clone",
+        "Name": "file1.txt",
+        "Content": "",
+        "LocalPath": "file1.txt"
+      },
+      "file3.txt": {
+        "$type": "Git_Clone.FileNode, Git Clone",
+        "Name": "file3.txt",
+        "Content": "",
+        "LocalPath": "file3.txt"
+      },
+      "file4.txt": {
+        "$type": "Git_Clone.FileNode, Git Clone",
+        "Name": "file4.txt",
+        "Content": "",
+        "LocalPath": "file4.txt"
+      },
+      "na.txt": {
+        "$type": "Git_Clone.FileNode, Git Clone",
+        "Name": "na.txt",
+        "Content": "loll",
+        "LocalPath": "na.txt"
+      },
+      "nah.txt": {
+        "$type": "Git_Clone.FileNode, Git Clone",
+        "Name": "nah.txt",
+        "Content": "",
+        "LocalPath": "nah.txt"
+      },
+      "oogabooga.txt": {
+        "$type": "Git_Clone.FileNode, Git Clone",
+        "Name": "oogabooga.txt",
+        "Content": "nahhhcrazy",
+        "LocalPath": "oogabooga.txt"
+      },
+      "wowafile.txt": {
+        "$type": "Git_Clone.FileNode, Git Clone",
+        "Name": "wowafile.txt",
+        "Content": "",
+        "LocalPath": "wowafile.txt"
+      },
+      "yooo.txt": {
+        "$type": "Git_Clone.FileNode, Git Clone",
+        "Name": "yooo.txt",
+        "Content": "",
+        "LocalPath": "yooo.txt"
+      },
+      "Subdirectory": {
+        "$type": "Git_Clone.FolderNode, Git Clone",
+        "Name": "Subdirectory",
+        "Children": {
+          "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[Git_Clone.INode, Git Clone]], System.Private.CoreLib",
+          "goodfilename.txt": {
+            "$type": "Git_Clone.FileNode, Git Clone",
+            "Name": "goodfilename.txt",
+            "Content": "",
+            "LocalPath": "Subdirectory\\goodfilename.txt"
+          },
+          "nahh.txt": {
+            "$type": "Git_Clone.FileNode, Git Clone",
+            "Name": "nahh.txt",
+            "Content": "",
+            "LocalPath": "Subdirectory\\nahh.txt"
+          },
+          "SubSubDirectory": {
+            "$type": "Git_Clone.FolderNode, Git Clone",
+            "Name": "SubSubDirectory",
+            "Children": {
+              "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[Git_Clone.INode, Git Clone]], System.Private.CoreLib",
+              "fur.txt": {
+                "$type": "Git_Clone.FileNode, Git Clone",
+                "Name": "fur.txt",
+                "Content": "ddo",
+                "LocalPath": "Subdirectory\\SubSubDirectory\\fur.txt"
+              }
+            }
+          }
+        }
+      },
+      "SubSubDirectory": {
+        "$type": "Git_Clone.FolderNode, Git Clone",
+        "Name": "SubSubDirectory",
+        "Children": {
+          "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[Git_Clone.INode, Git Clone]], System.Private.CoreLib",
+          "fur.txt": {
+            "$type": "Git_Clone.FileNode, Git Clone",
+            "Name": "fur.txt",
+            "Content": "ddo",
+            "LocalPath": "Subdirectory\\SubSubDirectory\\fur.txt"
+          }
+        }
+      }
+    }
+  },
+  "Nodes": {
+    "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[Git_Clone.INode, Git Clone]], System.Private.CoreLib",
+    "file1.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "file1.txt",
+      "Content": "",
+      "LocalPath": "file1.txt"
+    },
+    "file3.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "file3.txt",
+      "Content": "",
+      "LocalPath": "file3.txt"
+    },
+    "file4.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "file4.txt",
+      "Content": "",
+      "LocalPath": "file4.txt"
+    },
+    "na.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "na.txt",
+      "Content": "loll",
+      "LocalPath": "na.txt"
+    },
+    "nah.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "nah.txt",
+      "Content": "",
+      "LocalPath": "nah.txt"
+    },
+    "oogabooga.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "oogabooga.txt",
+      "Content": "nahhhcrazy",
+      "LocalPath": "oogabooga.txt"
+    },
+    "wowafile.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "wowafile.txt",
+      "Content": "",
+      "LocalPath": "wowafile.txt"
+    },
+    "yooo.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "yooo.txt",
+      "Content": "",
+      "LocalPath": "yooo.txt"
+    },
+    "Subdirectory": {
+      "$type": "Git_Clone.FolderNode, Git Clone",
+      "Name": "Subdirectory",
+      "Children": {
+        "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[Git_Clone.INode, Git Clone]], System.Private.CoreLib",
+        "goodfilename.txt": {
+          "$type": "Git_Clone.FileNode, Git Clone",
+          "Name": "goodfilename.txt",
+          "Content": "",
+          "LocalPath": "Subdirectory\\goodfilename.txt"
+        },
+        "nahh.txt": {
+          "$type": "Git_Clone.FileNode, Git Clone",
+          "Name": "nahh.txt",
+          "Content": "",
+          "LocalPath": "Subdirectory\\nahh.txt"
+        },
+        "SubSubDirectory": {
+          "$type": "Git_Clone.FolderNode, Git Clone",
+          "Name": "SubSubDirectory",
+          "Children": {
+            "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[Git_Clone.INode, Git Clone]], System.Private.CoreLib",
+            "fur.txt": {
+              "$type": "Git_Clone.FileNode, Git Clone",
+              "Name": "fur.txt",
+              "Content": "ddo",
+              "LocalPath": "Subdirectory\\SubSubDirectory\\fur.txt"
+            }
+          }
+        }
+      }
+    },
+    "goodfilename.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "goodfilename.txt",
+      "Content": "",
+      "LocalPath": "Subdirectory\\goodfilename.txt"
+    },
+    "nahh.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "nahh.txt",
+      "Content": "",
+      "LocalPath": "Subdirectory\\nahh.txt"
+    },
+    "SubSubDirectory": {
+      "$type": "Git_Clone.FolderNode, Git Clone",
+      "Name": "SubSubDirectory",
+      "Children": {
+        "$type": "System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[Git_Clone.INode, Git Clone]], System.Private.CoreLib",
+        "fur.txt": {
+          "$type": "Git_Clone.FileNode, Git Clone",
+          "Name": "fur.txt",
+          "Content": "ddo",
+          "LocalPath": "Subdirectory\\SubSubDirectory\\fur.txt"
+        }
+      }
+    },
+    "fur.txt": {
+      "$type": "Git_Clone.FileNode, Git Clone",
+      "Name": "fur.txt",
+      "Content": "ddo",
+      "LocalPath": "Subdirectory\\SubSubDirectory\\fur.txt"
+    }
+  }
+}

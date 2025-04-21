@@ -1,8 +1,6 @@
 ﻿namespace Git_Clone
 {
-    using Microsoft.VisualBasic;
     using my.utils;
-    using static my.utils.Diff;
 
     /// <summary>
     /// Also known as the staging area. Represents the state of the changedFiles that are staged for commit.
@@ -22,55 +20,60 @@
 
         public Dictionary<string, FileChangeStatus> GetAllChangedFiles()
         {
-            Dictionary<string, FileChangeStatus> _fileChanges = new Dictionary<string, FileChangeStatus>();
-            Diff diff = new Diff();
+            var fileChanges = new Dictionary<string, FileChangeStatus>();
+            var diff = new Diff();
 
-            string[] files = WorkingDirectory.GetFilesInLocalPath().ToArray();
-            Commit HEAD = Repository.BranchManager.GetCurrentBranch().GetHead();
+            var workingFiles = WorkingDirectory.GetFilesInfo().ToArray();
 
+            Commit? HEAD = Repository.BranchManager.GetCurrentBranch().GetHead();
+
+            
+
+            // if no HEAD yet, everything is added amigo and this is a clean repo (that's short for repository btw,
+            // I'm just using slang)
             if (HEAD == null)
             {
-                //Console.WriteLine("No HEAD found. Which means it's a clean start. Returning all files as added.");
-                foreach (string file in files)
-                {
-                    _fileChanges.Add(file, FileChangeStatus.Added);
-                }
-                return _fileChanges;
+                foreach (var workingFile in workingFiles)
+                    fileChanges[workingFile.Name] = FileChangeStatus.Added;
+                return fileChanges;
             }
 
-            HashSet<string> _headFiles = new HashSet<string>(HEAD.CommitTree.Nodes.Keys);
-            foreach (var file in files)
+            var headFiles = new HashSet<string>(
+    HEAD.CommitTree
+        .Nodes
+        .Where(kvp => kvp.Value is FileNode)
+        .Select(kvp => kvp.Key)
+);
+
+            // compare working dir vs HEAD
+            foreach (var workingFile in workingFiles)
             {
-                bool doesExistsInHead = HEAD.CommitTree.Nodes.ContainsKey(file);
-
-                if (doesExistsInHead)
+                if (headFiles.Contains(workingFile.Name))
                 {
-                    string fullPath = WorkingDirectory.GetFullPathFromRepositoryPath(file);
-
-                    FileNode fileNode = (FileNode)HEAD.CommitTree.Nodes[file];
-                    string currentFileContent = File.ReadAllText(fullPath);
-                    var diffResult = diff.DiffText(fileNode.Content, currentFileContent);
-
-                    if (diffResult.Length > 0)
-                    {
-                        _fileChanges.Add(file, FileChangeStatus.Modified);
-                    }
+                    // tracked in HEAD
+                    var fileNode = (FileNode)HEAD.CommitTree.Nodes[workingFile.Name];
+                    var currentContent = File.ReadAllText(
+                      WorkingDirectory.GetFullPathFromRepositoryPath(workingFile.RelativePath)
+                    );
+                    var d = diff.DiffText(fileNode.Content, currentContent);
+                    if (d.Length > 0)
+                        fileChanges[workingFile.Name] = FileChangeStatus.Modified;
                 }
                 else
                 {
-                    _fileChanges.Add(file, FileChangeStatus.Added);
+                    fileChanges[workingFile.Name] = FileChangeStatus.Added;
                 }
-                if (_headFiles.Contains(file))
-                {
-                    _headFiles.Remove(file);
-                }
-            }
-            foreach (var deletedChange in _headFiles)
-            {
-                _fileChanges.Add(deletedChange, FileChangeStatus.Deleted);
+
+                // remove from headFiles so leftover = deleted
+                headFiles.Remove(workingFile.Name);
             }
 
-            return _fileChanges;
+            // anything still in headFiles must have been deleted
+            foreach (var deleted in headFiles)
+                fileChanges[deleted] = FileChangeStatus.Deleted;
+
+            return fileChanges;
         }
+
     }
 }

@@ -216,6 +216,12 @@
             {
                 commandIndex++;
 
+                if (command.Length <= commandIndex)
+                {
+                    Console.WriteLine($"No files to sage given. Add files to stage or use all to stage all changes.");
+                    return;
+                }
+
                 if (command[commandIndex] == RepositoryCommands.StageAllFiles)
                     repo.StageAllChanges();
                 else
@@ -260,7 +266,7 @@
                     }
                 }
 
-                Tree commitTree = repo.PrepareCommit();
+                Tree commitTree = repo.PrepareCommit(commitMessage);
                 repo.BranchManager.GetCurrentBranch().AddCommit(new Commit($"'{commitMessage}'", commitTree));
             }
         }

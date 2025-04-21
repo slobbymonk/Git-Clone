@@ -1,18 +1,14 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
-using System.Text.Json.Serialization;
-using System.Xml.Linq;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Git_Clone
 {
     [JsonObject(MemberSerialization.OptIn)]
     public class Tree
     {
-        public INode RootNode { get; set; }
-        public Dictionary<string, INode> Nodes { get; set; } = new();
+        [JsonProperty] public FolderNode RootNode { get; set; }
+        [JsonProperty] public Dictionary<string, INode> Nodes { get; set; } = new();
 
-        public Tree(INode rootNode)
+        public Tree(FolderNode rootNode)
         {
             RootNode = rootNode;
         }
@@ -29,7 +25,6 @@ namespace Git_Clone
             {
                 parentNode.Children.Add(filepath, node);
             }
-            node.Parent = parentNode;
         }
         public void RemoveNode(string filePath, INode node, FolderNode parentNode)
         {
@@ -41,7 +36,6 @@ namespace Git_Clone
 
             Nodes.Remove(filePath);
             parentNode.Children.Remove(filePath);
-            node.Parent = null;
         }
         public bool TryGetFileNode(string filePath, out FileNode headFileNode)
         {

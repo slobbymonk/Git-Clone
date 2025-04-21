@@ -16,4 +16,9 @@
     <ProjectReference Include="..\External\Diff\diff.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Repos\Saves\" />
+    <Folder Include="Repos\Saves\main Branch Commit History\" />
+  </ItemGroup>
+
 </Project>

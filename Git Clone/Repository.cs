@@ -4,7 +4,7 @@ namespace Git_Clone
 {
     // TODO: Fix bug where for some reason it thinks things that don't, already exist
     // TODO: Add checking out of previous commits
-    // TODO: Add saving commits in file
+    // TODO: Add saving commits in localFilePath
 
 
     public class Repository
@@ -28,7 +28,9 @@ namespace Git_Clone
             Index = new Index(this);
 
             BranchManager.Initialize();
+            BranchManager.LoadAllSavedBranchCommits(WorkingDirectory);
         }
+        
         public void ListAllFilesInRepository()
         {
             List<string> files = WorkingDirectory.GetFilesInLocalPath().ToList();
@@ -193,13 +195,13 @@ namespace Git_Clone
 
             foreach (var fileInLocalPath in changedFilesInLocalPath.Keys)
             {
-                StageFileByLocalPath(fileInLocalPath);
+                StageFileWithName(fileInLocalPath);
             }
         }
 
-        public Tree PrepareCommit()
+        public Tree PrepareCommit(string commitMessage = "")
         {
-            FolderNode root = new FolderNode("Root");
+            FolderNode root = FolderNode.CreateRoot("Root");
             Tree commitTree = new Tree(root);
 
             Dictionary<string, FileChangeStatus> changedFiles = Index.GetAllChangedFiles();
@@ -210,85 +212,95 @@ namespace Git_Clone
 
             List<string> allFiles = WorkingDirectory.GetFilesInLocalPath().ToList();
 
-            foreach (string file in allFiles)
+            foreach (string localFilePath in allFiles)
             {
-                string[] pathParts = file.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+                string[] pathParts = localFilePath.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
 
                 FolderNode currentFolder = root;
 
-                // Iterate through all folders (exclude the last part aka the file name)
-                string currentFolderPath = string.Empty;
-                int loopStartingValue = 0;
-                for (int i = loopStartingValue; i < pathParts.Length - 1; i++)
+                // Iterate through all folders (excluding the last part which is the localFilePath name)
+                for (int i = 0; i < pathParts.Length - 1; i++)
                 {
                     string folderName = pathParts[i];
 
-                    if (!currentFolder.Children.TryGetValue(folderName, out INode? existingNode))
+                    // Check if this folder path already exists in the tree
+                    if (!currentFolder.Children.ContainsKey(folderName))
                     {
-                        FolderNode newFolder = new FolderNode(folderName);
-                        newFolder.Parent = currentFolder;
+                        FolderNode newFolder = FolderNode.Create(folderName, currentFolder);
                         currentFolder.Children.Add(folderName, newFolder);
                         currentFolder = newFolder;
                     }
                     else
                     {
-                        currentFolder = (FolderNode)existingNode;
+                        currentFolder = (FolderNode)currentFolder.Children[folderName];
                     }
-                    currentFolderPath += pathParts[i] + Path.DirectorySeparatorChar;
-                    FolderNode parentFolder = (i == loopStartingValue) ? root : 
-                        (FolderNode)commitTree.Nodes[pathParts[i - 1] + Path.DirectorySeparatorChar];
-                    commitTree.AddNode(currentFolderPath, currentFolder, parentFolder);
+
+                    // Ensure folder nodes are added correctly to the tree
+                    commitTree.AddNode(folderName, currentFolder, root);
                 }
 
+                // Handle the localFilePath node
+                string fileName = pathParts.Last();
                 FileNode? newFileNode = null;
 
-                if (changedFiles.ContainsKey(file)) // Did file change?
+                if (changedFiles.ContainsKey(fileName))  // Did the localFilePath change?
                 {
-                    if (!StagedFiles.Contains(file) || changedFiles[file] == FileChangeStatus.Deleted) // Ok but did you stage it huh?
+                    if (!StagedFiles.Contains(localFilePath) || changedFiles[fileName] == FileChangeStatus.Deleted)
                         continue;
 
-                    // Oh you did, alright then let's make a new node
-                    string fullPath = WorkingDirectory.GetFullPathFromRepositoryPath(file);
+                    // File is staged and changed, read its content
+                    string fullPath = WorkingDirectory.GetFullPathFromRepositoryPath(localFilePath);
                     string content = File.ReadAllText(fullPath);
 
-                    newFileNode = new FileNode(file, content);
-                    commitTree.AddNode(file, newFileNode, currentFolder);
+                    newFileNode = new FileNode(fileName, content, currentFolder, localFilePath);
+                    commitTree.AddNode(fileName, newFileNode, currentFolder);
                 }
                 else
                 {
-                    if(_headTree != null && _headTree.Nodes.TryGetValue(file, out INode? existingNode))
+                    if (_headTree != null && _headTree.Nodes.TryGetValue(localFilePath, out INode? existingNode))
                     {
-                        commitTree.AddNode(file, existingNode, currentFolder);
+                        commitTree.AddNode(fileName, existingNode, currentFolder);
                     }
                 }
 
-                if (newFileNode == null)
-                    continue;
-                
-                newFileNode.Parent = currentFolder;
-
-                if (!currentFolder.Children.ContainsKey(file))
+                // If the localFilePath was added, make sure it's in the current folder
+                if (newFileNode != null && !currentFolder.Children.ContainsKey(fileName))
                 {
-                    currentFolder.Children.Add(file, newFileNode);
-                }
-                else
-                {
-                    Console.WriteLine($"Warning: {file} already exists in {currentFolder.Name}.");
+                    currentFolder.Children.Add(fileName, newFileNode);
                 }
 
-                Console.WriteLine($"Adding to tree: {file}");
-
-                commitTree.AddNode(file, newFileNode, currentFolder);
+                Console.WriteLine($"Adding to tree: {fileName}");
             }
 
+            // Clear staged files after committing
             StagedFiles.Clear();
 
-            string json = JsonConvert.SerializeObject(commitTree.RootNode, Formatting.Indented);
-            File.WriteAllText("C:\\Games" + "\\" + "tree.json", json);
+            // Build the correct path for saving the commit tree JSON localFilePath
+            string jsonSavingPlace = Path.Combine(WorkingDirectory.RepositorySavingFolder, 
+                BranchManager.GetCurrentBranch().BranchName + " Branch Commit History", commitMessage + ".json");
+
+            // Ensure the directory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(jsonSavingPlace));
+
+            // Serialize the commit tree to JSON format
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.All, // 🔥 key fix here
+                Formatting = Formatting.Indented,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+
+            // Serializing:
+            string json = JsonConvert.SerializeObject(commitTree, settings);
+
+            // Write the JSON to the localFilePath
+            File.WriteAllText(jsonSavingPlace, json);
+
 
 
             return commitTree;
         }
+
 
         public void GetFullPath(string fileName, out string fullPath)
         {
@@ -303,6 +315,8 @@ namespace Git_Clone
         // TODO: Make this path something you can set up
         public string RepositoryRootFolder { get; set; } =
             "C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\TestRepository\\";
+        public string RepositorySavingFolder { get; set; } =
+            "C:\\Projects\\Coding\\GitClone\\Git Clone\\Repos\\Saves\\";
 
         /// <summary>
         /// Gets all the files in the directory inside of its path relative to the directory root folder.
@@ -313,9 +327,24 @@ namespace Git_Clone
             return Directory.EnumerateFiles(RepositoryRootFolder, "*.*", SearchOption.AllDirectories)
                                            .Select(path => Path.GetRelativePath(RepositoryRootFolder, path));
         }
+        public IEnumerable<string> GetFileNamesInLocalPath()
+        {
+            return Directory.EnumerateFiles(RepositoryRootFolder, "*.*", SearchOption.AllDirectories)
+                            .Select(path => Path.GetFileName(path));
+        }
+
+        public IEnumerable<(string Name, string RelativePath)> GetFilesInfo()
+        {
+            return Directory
+              .EnumerateFiles(RepositoryRootFolder, "*.*", SearchOption.AllDirectories)
+              .Select(path => (
+                 Name: Path.GetFileName(path),
+                 RelativePath: Path.GetRelativePath(RepositoryRootFolder, path)
+              ));
+        }
         public string? GetLocalPathName(string fileName)
         {
-            // Search for any file that has the given file name (case-insensitive)
+            // Search for any localFilePath that has the given localFilePath name (case-insensitive)
             string? fullPath = Directory.EnumerateFiles(RepositoryRootFolder, "*.*", SearchOption.AllDirectories)
                 .FirstOrDefault(path => Path.GetFileName(path).Equals(fileName, StringComparison.OrdinalIgnoreCase));
 

@@ -1,4 +1,6 @@
-﻿namespace Git_Clone
+﻿using Newtonsoft.Json;
+
+namespace Git_Clone
 {
     public class Branch
     {

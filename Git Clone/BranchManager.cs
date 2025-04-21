@@ -1,4 +1,6 @@
-﻿namespace Git_Clone
+﻿using Newtonsoft.Json;
+
+namespace Git_Clone
 {
     public class BranchManager
     {
@@ -18,6 +20,58 @@
         {
             CurrentBranchId = _currentBranchIdIndex;
             CreateBranch("main", "0.0.1");
+        }
+
+        public void LoadAllSavedBranchCommits(WorkingDirectory workingDirectory)
+        {
+            foreach (var branch in Branches.Values)
+            {
+                // Define the path to the commit history folder for this branch
+                string branchCommitHistoryPath = Path.Combine(workingDirectory.RepositorySavingFolder,
+                    branch.BranchName + " Branch Commit History");
+
+                // Check if the directory exists
+                if (Directory.Exists(branchCommitHistoryPath))
+                {
+                    // List all JSON files in the directory
+                    var commitFiles = Directory.GetFiles(branchCommitHistoryPath, "*.json");
+
+                    // Sort the commit files based on filename or another order to get the correct sequence (optional)
+                    var orderedCommitFiles = commitFiles.OrderBy(f => f).ToList(); // Sorting by filename (commit message)
+
+                    foreach (var commitFile in orderedCommitFiles)
+                    {
+                        // Read the content of the commit JSON file
+                        string jsonContent = File.ReadAllText(commitFile);
+
+                        // Deserialize the JSON content to a commit tree
+                        var settings = new JsonSerializerSettings
+                        {
+                            TypeNameHandling = TypeNameHandling.All, // 🔥 key fix here
+                            Formatting = Formatting.Indented,
+                            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                        };
+
+                        // Deserializing:
+                        Tree commitTree = JsonConvert.DeserializeObject<Tree>(jsonContent, settings);
+
+                        if (commitTree != null)
+                        {
+                            // Add the commit to the branch (you may want to include additional commit metadata)
+                            branch.AddCommit(new Commit(commitFile, commitTree));
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Failed to deserialize commit tree for file {commitFile}");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"No commit history folder found for branch {branch.BranchName}");
+                }
+            }
+
         }
 
         public void CheckoutBranch(int branchId)
